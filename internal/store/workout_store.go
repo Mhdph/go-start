@@ -1,6 +1,8 @@
 package store
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 type Workout struct {
 	ID             int            `json:"id"`
@@ -112,4 +114,50 @@ func (pg *PostgresWorkoutStore) GetWorkoutByID(id int64) (*Workout, error) {
 	}
 
 	return workout, nil
+}
+
+func (pg *PostgresWorkoutStore) UpdateWorkout(workout *Workout) error {
+	tx, err := pg.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	query := ` 
+	UPDATE workouts 
+	SET title = $1, description = $2, duraion = $3, calories_burned = $4
+	WHERE id = $5
+	`
+
+	result, err := tx.Exec(query, workout.Title, workout.Description, workout.Duration, workout.CaloriesBurned, workout.ID)
+
+	if err != nil {
+		return err
+	}
+
+	RowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return nil
+	}
+	if RowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	_, err = tx.Exec(`DELETE FROM workout_entrues WHERE workout_Id = $1`, workout.ID)
+
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range workout.Entries {
+		query := `INSERT INTO workout_entries (workout_id, exercise_name, sets, reps, duration, weight, notes, order_index)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		`
+		_, err = tx.Exec(query, workout.ID, entry.ExerciesName, entry.Sets, entry.Reps, entry.Duration, entry.Weight, entry.Notes, entry.OrderIndex)
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
