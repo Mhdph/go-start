@@ -9,6 +9,7 @@ import (
 
 	"github.com/mhdph/go-start/internal/api"
 	"github.com/mhdph/go-start/internal/store"
+	"github.com/mhdph/go-start/migrations"
 )
 
 type Application struct {
@@ -22,6 +23,11 @@ func NewApplication() (*Application, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	err = store.MigrateFS(pgDb, migrations.FS, ".")
+	if err != nil {
+		panic(err)
 	}
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
