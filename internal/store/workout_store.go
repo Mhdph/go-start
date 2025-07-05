@@ -33,6 +33,7 @@ func NewPostgresWorkoutStore(db *sql.DB) *PostgresWorkoutStore {
 type WorkoutStore interface {
 	CreateWorkOut(*Workout) (*Workout, error)
 	GetWorkoutByID(id int64) (*Workout, error)
+	UpdateWorkout(*Workout) error
 }
 
 func (pg *PostgresWorkoutStore) CreateWorkOut(workout *Workout) (*Workout, error) {
@@ -78,5 +79,37 @@ func (pg *PostgresWorkoutStore) GetWorkoutByID(id int64) (*Workout, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	entryQuery := `SELECT id,exercise_name, sets, reps, duration, wiegh, note, order_index
+	FROM workout_entries 
+	WHERE workout_id = $1 
+	ORDER BY order_inedx
+	`
+	rows, err := pg.db.Query(entryQuery, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var entry WorkoutEntry
+		err = rows.Scan(
+			&entry.ID,
+			&entry.ExerciesName,
+			&entry.Sets,
+			&entry.Reps,
+			&entry.Duration,
+			&entry.Weight,
+			&entry.Notes,
+			&entry.OrderIndex,
+		)
+		if err != nil {
+			return nil, err
+		}
+		workout.Entries = append(workout.Entries, entry)
+	}
+
 	return workout, nil
 }
