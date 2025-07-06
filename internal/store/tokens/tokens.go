@@ -13,7 +13,7 @@ const (
 
 type Token struct {
 	Hash      []byte    `json:"hash"`
-	UserID    string    `json:"user_id"`
+	UserID    int       `json:"user_id"`
 	Expiry    time.Time `json:"expiry"`
 	Scope     string    `json:"scope"`
 	PlainText string    `json:"token"`
@@ -25,7 +25,7 @@ type TokenStore interface {
 	Find(hash []byte) (*Token, error)
 }
 
-func GetTokenStore(userID string, scope string, expiry time.Duration) (*Token, error) {
+func GetTokenStore(userID int, scope string, expiry time.Duration) (*Token, error) {
 	token := &Token{
 		UserID: userID,
 		Scope:  scope,

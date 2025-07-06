@@ -17,10 +17,10 @@ func NewPostgresTokenStore(db *sql.DB) *PostgresTokenStore {
 
 type TokenStore interface {
 	Insert(token *tokens.Token) error
-	Create(userID string, scope string, expiry time.Duration) (*tokens.Token, error)
+	Create(userID int, scope string, expiry time.Duration) (*tokens.Token, error)
 }
 
-func (t *PostgresTokenStore) CreateNewToken(userID string, scope string, expiry time.Duration) (*tokens.Token, error) {
+func (t *PostgresTokenStore) CreateNewToken(userID int, scope string, expiry time.Duration) (*tokens.Token, error) {
 	token, err := tokens.GetTokenStore(userID, scope, expiry)
 
 	if err != nil {
