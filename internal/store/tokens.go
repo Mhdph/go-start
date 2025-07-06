@@ -11,6 +11,11 @@ type PostgresTokenStore struct {
 	db *sql.DB
 }
 
+// Create implements TokenStore.
+func (t *PostgresTokenStore) Create(userID int, scope string, expiry time.Duration) (*tokens.Token, error) {
+	panic("unimplemented")
+}
+
 func NewPostgresTokenStore(db *sql.DB) *PostgresTokenStore {
 	return &PostgresTokenStore{db: db}
 }
