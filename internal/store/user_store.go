@@ -181,7 +181,35 @@ func (s *PostgresTokenStore) GetUserToken(scope, plainTextPassword string) (*Use
 	return user, nil
 }
 func (s *PostgresUserStore) GetUserToken(scope, tokenPlainText string) (*User, error) {
-	// You can implement the logic here, or delegate to a token store if you have one.
-	// For now, return nil, nil as a placeholder:
-	return nil, nil
+	tokenHash := sha256.Sum256([]byte(tokenPlainText))
+
+	query := `
+	SELECT u.id, u.email, u.username, u.password, u.bio, u.created_at, u.updated_at 
+	FROM users u 
+	INNER JOIN tokens t ON t.users.id = u.user.id 
+	WHERE t.hash = $1 AND t.scope = $2 AND t.expiry > $3`
+
+	user := &User{
+		Password: password{},
+	}
+
+	err := s.db.QueryRow(query, tokenHash[:], scope, time.Now()).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Password.hash,
+		&user.Bio,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("get user token: %w", err)
+	}
+
+	return user, nil
 }

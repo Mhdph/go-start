@@ -39,6 +39,9 @@ func NewApplication() (*Application, error) {
 	workoutStore := store.NewPostgresWorkoutStore(pgDb)
 	userStore := store.NewPostgresUserStore(pgDb)
 	tokenStore := store.NewPostgresTokenStore(pgDb)
+	userMiddleware := middleware.UserMiddlware{
+		UserStore: userStore,
+	}
 	workoutHandler := api.NewWorkoutHandler(workoutStore, logger)
 	userHandler := api.NewUserHandler(userStore, logger)
 	tokenHandler := api.NewTokenHandler(tokenStore, userStore, logger)
@@ -47,6 +50,7 @@ func NewApplication() (*Application, error) {
 		WorkoutHandler: workoutHandler,
 		UserHandler:    userHandler,
 		TokenHandler:   tokenHandler,
+		Middleware:     userMiddleware,
 		DB:             pgDb,
 	}
 

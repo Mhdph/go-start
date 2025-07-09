@@ -73,3 +73,14 @@ func (um *UserMiddlware) Autheniticate(next http.Handler) http.Handler {
 
 	})
 }
+
+func (um *UserMiddlware) RequireUser(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := GetUser(r)
+		if user == nil {
+			utils.WriteJson(w, http.StatusUnauthorized, utils.Envelope{"error": "unauthorized"})
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
