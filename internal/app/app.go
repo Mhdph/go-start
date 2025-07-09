@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/mhdph/go-start/internal/api"
+	"github.com/mhdph/go-start/internal/middleware"
 	"github.com/mhdph/go-start/internal/store"
 	"github.com/mhdph/go-start/migrations"
 )
@@ -17,6 +18,7 @@ type Application struct {
 	WorkoutHandler *api.WorkoutHandler
 	UserHandler    *api.UserHandler
 	TokenHandler   *api.TokenHandler
+	Middleware     middleware.UserMiddlware
 	DB             *sql.DB
 }
 
