@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/mhdph/go-start/internal/middleware"
 	"github.com/mhdph/go-start/internal/store"
 	"github.com/mhdph/go-start/internal/utils"
 )
@@ -47,6 +48,15 @@ func (wh *WorkoutHandler) HandleCreateWorkout(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	user := middleware.GetUser(r)
+	if user == nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	workout.UserID = user.ID
+
 	createdWorkout, err := wh.workoutStore.CreateWorkOut(&workout)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -110,6 +120,23 @@ func (wh *WorkoutHandler) HandleUpdateWorkoutById(w http.ResponseWriter, r *http
 	}
 	if updateWorkoutRequest.Entries != nil {
 		existingWorkout.Entries = updateWorkoutRequest.Entries
+	}
+
+	user := middleware.GetUser(r)
+	if user == nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	workOutOwner, err := wh.workoutStore.GetWorkoutByID(workoutId)
+	if err != nil {
+		http.Error(w, "failed to fetch workout", http.StatusInternalServerError)
+		return
+	}
+
+	if workOutOwner.UserID != user.ID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
 	}
 
 	err = wh.workoutStore.UpdateWorkout(existingWorkout)
